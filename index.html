@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <title data-i18n="title">vkdown - 在线视频下载工具</title>
+    <meta name="description" content="vkdown免费在线视频下载工具，支持多种平台视频下载，操作简单快捷" data-i18n="description">
+    <meta name="keywords" content="视频下载,在线下载,视频解析,免费下载,vkdown" data-i18n="keywords">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">
+                <i class="fas fa-download me-2"></i><span data-i18n="navbar_brand">vkdown</span>
+            </a>
+            <!-- 语言切换按钮 -->
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-globe me-1"></i><span id="currentLanguage">中文</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+                    <li><a class="dropdown-item" href="#" data-lang="zh-CN">中文</a></li>
+                    <li><a class="dropdown-item" href="#" data-lang="en">English</a></li>
+                    <li><a class="dropdown-item" href="#" data-lang="ru">Русский</a></li>
+                    <li><a class="dropdown-item" href="#" data-lang="ja">日本語</a></li>
+                    <li><a class="dropdown-item" href="#" data-lang="es">Español</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="text-center mb-5">
+                    <h1 class="display-5 fw-bold text-primary mb-3" data-i18n="main_title">vkdown在线视频下载工具</h1>
+                    <p class="lead text-muted" data-i18n="main_subtitle">支持多平台视频下载，简单三步即可获取视频</p>
+                </div>
+
+                <!-- 下载表单 -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <form id="downloadForm">
+                            <div class="mb-3">
+                                <label for="videoUrl" class="form-label fw-bold" data-i18n="form_label">视频链接</label>
+                                <div class="position-relative">
+                                    <input type="url" class="form-control form-control-lg" id="videoUrl" placeholder="请输入视频链接，如：https://www.example.com/video" data-i18n="form_placeholder" required>
+                                    <div class="position-absolute top-50 end-0 translate-middle-y pe-2">
+                                        <button class="btn btn-link p-1" type="button" id="pasteBtn">
+                                            <svg t="1754648262153" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="7922" width="25" height="25"><path d="M713.472 386.88 896 576l-192 0L704 386.88 713.472 386.88zM832 220.032l0 98.88-56 0L704 320 256 320l0 640L156.032 960C140.608 960 128 947.392 128 931.968L128 220.032C128 204.608 140.608 192 156.032 192l10.496 0 88.384 0L256 192l128 0L384 120C384 89.216 409.216 64 440 64L512 64c30.848 0 56 25.216 56 56L568 192 704 192l99.968 0C819.392 192 832 204.608 832 220.032zM512.128 120.128C512 120.064 512 120 512 120L440.128 120C440.064 120.064 440 120.128 440 120.128L440 192 512 192l0.128 0L512.128 120.128zM640 386.88 351.168 386.88C332.608 386.88 320 399.488 320 414.848l0 580.864c0 15.36 12.608 28.032 28.032 28.032l520 0c15.36 0 28.032-12.608 28.032-28.032l0-352.896-256 0L640.064 386.88zM713.472 386.88 896 576l-192 0L704 386.88 713.472 386.88z" fill="#010101" p-id="7923"></path></svg>
+                                        </button>
+                                        <button class="btn btn-link p-1 d-none" type="button" id="clearBtn">
+                                            <svg t="1754648108901" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6963" width="25" height="25"><path d="M554.586353 512l170.556235-170.556235c11.444706-11.414588 11.595294-30.659765-0.180706-42.405647a29.906824 29.906824 0 0 0-42.405647-0.180706L512 469.413647l-170.556235-170.556235a30.208 30.208 0 0 0-42.405647 0.180706 29.906824 29.906824 0 0 0-0.180706 42.405647L469.413647 512l-170.556235 170.556235c-11.444706 11.414588-11.595294 30.659765 0.180706 42.405647a29.906824 29.906824 0 0 0 42.405647 0.180706L512 554.586353l170.556235 170.556235c11.414588 11.444706 30.659765 11.595294 42.405647-0.180706a29.906824 29.906824 0 0 0 0.180706-42.405647L554.586353 512zM512 993.882353C245.850353 993.882353 30.117647 778.149647 30.117647 512S245.850353 30.117647 512 30.117647s481.882353 215.732706 481.882353 481.882353-215.732706 481.882353-481.882353 481.882353z" fill="#000000" p-id="6964"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                    <span id="buttonText" data-i18n="submit_button">解析视频</span>
+                                    <span id="buttonSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                </button>
+                                <div class="form-text text-center mt-2" data-i18n="supported_platforms">支持多种视频平台链接</div>
+                                <div class="d-flex justify-content-center align-items-center flex-wrap mt-3">
+                                    <img src="Youtube.png" alt="Youtube" class="mx-2 my-1" style="height: 40px;">
+                                    <img src="Facebook.png" alt="Facebook" class="mx-2 my-1" style="height: 40px;">
+                                    <img src="tiktoklogo_tiktok.png" alt="TikTok" class="mx-2 my-1" style="height: 40px;">
+                                    <img src="twitter.png" alt="Twitter" class="mx-2 my-1" style="height: 40px;">
+                                    <img src="vk.png" alt="VK" class="mx-2 my-1" style="height: 40px;">
+                                    <img src="Bilibili.png" alt="Bilibili" class="mx-2 my-1" style="height: 40px;">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 结果展示区域 -->
+                <div id="resultContainer" class="mt-4 d-none">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold text-primary" data-i18n="result_title">视频信息</h5>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0" id="videoTitle"></h6>
+                            </div>
+                            <div class="d-grid">
+                                <button class="btn btn-success btn-lg" id="downloadBtn">
+                                    <i class="fas fa-download me-2"></i><span data-i18n="download_button">下载视频</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 错误提示 -->
+                <div id="errorContainer" class="mt-4 d-none">
+                    <div class="alert alert-danger" role="alert">
+                        <h5 class="alert-heading" data-i18n="error_title">错误提示</h5>
+                        <p class="mb-0" id="errorMessage"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能介绍 -->
+        <div class="row mt-5">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-link fs-4">
+                                <img src="zhantie-icon.png" alt="paste" class="mx-2 my-1" style="height: 45px;">
+                            </i>
+                        </div>
+                        <h5 class="card-title" data-i18n="feature_1_title">粘贴链接</h5>
+                        <p class="card-text text-muted" data-i18n="feature_1_desc">复制您想要下载的视频链接并粘贴到输入框</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-search fs-4">
+                                <img src="shipin-jiexi-icon.png" alt="paste" class="mx-2 my-1" style="height: 35px;">
+                            </i>
+                        </div>
+                        <h5 class="card-title" data-i18n="feature_2_title">解析视频</h5>
+                        <p class="card-text text-muted" data-i18n="feature_2_desc">点击解析按钮，系统将分析视频信息</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-download fs-4">
+                                <img src="xiazai-icon.png" alt="paste" class="mx-2 my-1" style="height: 40px;">
+                            </i>
+                        </div>
+                        <h5 class="card-title" data-i18n="feature_3_title">下载视频</h5>
+                        <p class="card-text text-muted" data-i18n="feature_3_desc">获取视频下载链接，点击下载按钮保存视频</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <h5 class="fw-bold text-primary" data-i18n="footer_title">vkdown</h5>
+                    <p class="text-muted small mb-0" data-i18n="footer_desc">提供简单易用的在线视频下载服务</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted small mb-0" data-i18n="footer_copyright">&copy; 2025 vkdown. 保留所有权利.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 引入Font Awesome图标库 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="languages.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
