@@ -1,5 +1,5 @@
 // API基础URL
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://vkdown.com';
 
 // 获取DOM元素
 const downloadForm = document.getElementById('downloadForm');
@@ -129,7 +129,7 @@ function showResult(data) {
         videoTitle.textContent = data.data.text;
         
         // 保存视频下载链接
-        currentVideoUrl = data.data.medias.resource_url;
+        currentVideoUrl = API_BASE_URL + '/' + data.data.medias.resource_url;
         
         // 显示结果容器
         resultContainer.classList.remove('d-none');
@@ -180,7 +180,7 @@ function initLanguageSwitcher() {
     };
     
     // 获取当前语言
-    const currentLang = localStorage.getItem('language') || 'zh-CN';
+    const currentLang = localStorage.getItem('language') || 'ru';
     document.getElementById('currentLanguage').textContent = languageMap[currentLang];
     
     // 为每个语言选项添加点击事件

@@ -168,7 +168,7 @@ const languages = {
 
 // 获取当前语言
 function getCurrentLanguage() {
-    return localStorage.getItem('language') || 'zh-CN';
+    return localStorage.getItem('language') || 'ru';
 }
 
 // 设置当前语言
