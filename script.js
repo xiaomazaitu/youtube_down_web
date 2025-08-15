@@ -1,6 +1,7 @@
 // API基础URL
-// const API_BASE_URL = 'https://vkdown.com';
-const API_BASE_URL = 'http://127.0.0.1:5000';
+const API_BASE_URL = 'https://vkdown.com';
+// 生产环境使用相对路径，通过Nginx代理到后端
+// const API_BASE_URL = 'http://127.0.0.1:5000'; // 本地开发环境
 let currentVideoFilename = null; // 保存视频文件名
 let taskId = null; // 保存任务ID
 let pollInterval = null; // 轮询定时器
