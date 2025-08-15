@@ -1,5 +1,10 @@
 // API基础URL
-const API_BASE_URL = 'https://vkdown.com';
+// const API_BASE_URL = 'https://vkdown.com';
+const API_BASE_URL = 'http://127.0.0.1:5000';
+let currentVideoFilename = null; // 保存视频文件名
+let taskId = null; // 保存任务ID
+let pollInterval = null; // 轮询定时器
+
 
 // 获取DOM元素
 const downloadForm = document.getElementById('downloadForm');
@@ -61,30 +66,51 @@ downloadForm.addEventListener('submit', async function(e) {
         return;
     }
     
+    // 检查网络连接状态
+    if (!checkNetworkStatus()) {
+        setButtonLoading(false);
+        return;
+    }
+    
     // 显示加载状态
     setButtonLoading(true);
     hideError();
+    hideResult(); // 隐藏之前的结果
     
     try {
         // 调用API获取视频信息
+        console.log('Starting Download API');
         const data = await fetchVideoInfo(url);
         
-        // 显示结果
-        showResult(data);
+        console.log('Download API response:', data);
+        
+        // 检查返回的数据是否存在task_id
+        if (data && data.hasOwnProperty('task_id')) {
+            taskId = data.task_id;
+            console.log('Starting polling for task ID:', taskId);
+            startPolling(taskId);
+        } else {
+            console.error('Missing task_id in response data');
+            throw new Error(getTranslation('parse_error'));
+        }
     } catch (error) {
+        console.error('Download form submission error:', error);
         showError(error.message || getTranslation('parse_error'));
-    } finally {
         setButtonLoading(false);
     }
 });
 
 // 下载按钮事件
 downloadBtn.addEventListener('click', function() {
-    if (currentVideoUrl) {
+    console.log('Download button clicked');
+    console.log('Current video URL:', currentVideoUrl);
+    console.log('Current video filename:', currentVideoFilename);
+    
+    if (currentVideoUrl && currentVideoFilename) {
         // 创建临时下载链接
         const link = document.createElement('a');
         link.href = currentVideoUrl;
-        link.download = videoTitle.textContent || 'video.mp4';
+        link.download = currentVideoFilename;
         link.style.display = 'none';
         
         // 添加到页面并触发下载
@@ -95,6 +121,7 @@ downloadBtn.addEventListener('click', function() {
         // 显示下载成功提示
         alert(getTranslation('download_alert'));
     } else {
+        console.error('Missing video URL or filename for download');
         showError(getTranslation('invalid_download'));
     }
 });
@@ -103,43 +130,56 @@ downloadBtn.addEventListener('click', function() {
 async function fetchVideoInfo(url) {
     // 实际API调用代码
     try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/download/`, {
+        console.log('Sending request to:', `${API_BASE_URL}/download`);
+        console.log('Request body:', { url: url });
+        
+        const response = await fetch(`${API_BASE_URL}/download`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
             },
-            body: JSON.stringify({ url: url })
+            body: JSON.stringify({ url: url }),
+            credentials: 'include' // 添加credentials选项以处理跨域请求
         });
+        
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
         
         if (!response.ok) {
             throw new Error(getTranslation('network_error'));
         }
         
         const data = await response.json();
+        console.log('Response data:', data);
         return data;
     } catch (error) {
+        console.error('Fetch error:', error);
         throw new Error(getTranslation('network_error'));
     }
 }
 
 // 显示结果
-function showResult(data) {
-    if (data.code === 200) {
-        // 设置视频标题
-        videoTitle.textContent = data.data.text;
-        
-        // 保存视频下载链接
-        currentVideoUrl = API_BASE_URL + '/' + data.data.medias.resource_url;
-        
-        // 显示结果容器
-        resultContainer.classList.remove('d-none');
-        resultContainer.classList.add('fade-in');
-        
-        // 滚动到结果区域
-        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } else {
-        throw new Error(data.message || '解析失败');
-    }
+function showResult(filename) {
+    // 设置视频标题为文件名
+    videoTitle.textContent = filename;
+    
+    // 保存视频文件名和下载链接
+    currentVideoFilename = filename;
+    currentVideoUrl = `${API_BASE_URL}/video/${filename}`;
+    
+    // 显示结果容器
+    resultContainer.classList.remove('d-none');
+    resultContainer.classList.add('fade-in');
+    
+    // 滚动到结果区域
+    resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// 隐藏结果
+function hideResult() {
+    resultContainer.classList.add('d-none');
+    resultContainer.classList.remove('fade-in');
 }
 
 // 显示错误信息
@@ -165,6 +205,159 @@ function setButtonLoading(loading) {
         buttonText.textContent = getTranslation('submit_button');
         buttonSpinner.classList.add('d-none');
         submitBtn.disabled = false;
+    }
+}
+
+// 检查网络连接状态
+function checkNetworkStatus() {
+    if (!navigator.onLine) {
+        showError(getTranslation('network_error'));
+        return false;
+    }
+    return true;
+}
+
+// 开始轮询任务状态
+function startPolling(taskId) {
+    // 清除之前的轮询定时器
+    if (pollInterval) {
+        clearInterval(pollInterval);
+    }
+    
+    // 设置轮询定时器，每2秒查询一次状态
+    let pollCount = 0;
+    const maxPollCount = 30; // 最多轮询30次（1分钟）
+    
+    pollInterval = setInterval(async function() {
+        // 检查是否超过最大轮询次数
+        if (pollCount >= maxPollCount) {
+            console.log('Max polling attempts reached');
+            stopPolling();
+            setButtonLoading(false);
+            showError(getTranslation('network_error'));
+            return;
+        }
+        
+        pollCount++;
+        
+        try {
+            const statusData = await fetchTaskStatus(taskId);
+            handleTaskStatus(statusData);
+        } catch (error) {
+            console.error('Polling error:', error);
+            // 如果是网络错误，继续轮询
+            if (error.message === getTranslation('network_error')) {
+                // 继续轮询
+                console.log('Network error, continuing to poll...');
+            } else {
+                // 其他错误，停止轮询
+                showError(error.message || getTranslation('network_error'));
+                stopPolling();
+                setButtonLoading(false);
+            }
+        }
+    }, 2000);
+}
+
+// 停止轮询
+function stopPolling() {
+    if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+    }
+}
+
+// 获取任务状态
+async function fetchTaskStatus(taskId) {
+    try {
+        console.log('Checking task status for ID:', taskId);
+        const response = await fetch(`${API_BASE_URL}/status/${taskId}`, {
+            headers: {
+                'Accept': 'application/json',
+            },
+            credentials: 'include' // 添加credentials选项以处理跨域请求
+        });
+        
+        console.log('Status check response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(getTranslation('network_error'));
+        }
+        
+        const data = await response.json();
+        console.log('Status check response data:', data);
+        return data;
+    } catch (error) {
+        console.error('Status check error:', error);
+        throw new Error(getTranslation('network_error'));
+    }
+}
+
+// 处理任务状态
+function handleTaskStatus(data) {
+    console.log('Task status:', data); // 调试信息
+    
+    // 检查数据是否存在
+    if (!data) {
+        console.error('Invalid task status data');
+        stopPolling();
+        setButtonLoading(false);
+        showError(getTranslation('parse_error'));
+        return;
+    }
+    
+    // 检查状态字段是否存在
+    if (!data.hasOwnProperty('state')) {
+        console.error('Missing state field in task status data');
+        stopPolling();
+        setButtonLoading(false);
+        showError(getTranslation('parse_error'));
+        return;
+    }
+    
+    switch (data.state) {
+        case 'PENDING':
+            // 任务等待中，继续轮询
+            console.log('Task is pending...');
+            break;
+        case 'PROGRESS':
+            // 下载进行中，显示进度信息
+            console.log('Task is in progress:', data.status);
+            // 可以在这里更新UI显示进度，而不是显示错误
+            break;
+        case 'SUCCESS':
+            // 下载完成，显示结果
+            console.log('Task completed successfully');
+            // 检查filename字段是否存在
+            if (!data.hasOwnProperty('filename')) {
+                console.error('Missing filename field in success status data');
+                stopPolling();
+                setButtonLoading(false);
+                showError(getTranslation('parse_error'));
+                return;
+            }
+            stopPolling();
+            setButtonLoading(false);
+            showResult(data.filename);
+            break;
+        case 'FAILURE':
+            // 下载失败，显示错误信息
+            console.log('Task failed:', data.status);
+            stopPolling();
+            setButtonLoading(false);
+            // 检查status字段是否存在
+            if (data.hasOwnProperty('status')) {
+                showError(data.status);
+            } else {
+                showError(getTranslation('parse_error'));
+            }
+            break;
+        default:
+            // 未知状态
+            console.log('Unknown task state:', data.state);
+            stopPolling();
+            setButtonLoading(false);
+            showError(getTranslation('parse_error'));
     }
 }
 
@@ -208,6 +401,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 应用翻译
     applyTranslations();
+    
+    // 输出API基础URL到控制台
+    console.log('API Base URL:', API_BASE_URL);
     
     // 可以在这里添加一些初始化代码
     console.log('视频下载助手已加载');
